@@ -6,13 +6,13 @@ Nodeclub
 [![David deps][david-image]][david-url]
 [![node version][node-image]][node-url]
 
-[travis-image]: https://img.shields.io/travis/cnodejs/nodeclub.svg?style=flat-square
+[travis-image]: https://img.shields.io/travis/cnodejs/nodeclub/master.svg?style=flat-square
 [travis-url]: https://travis-ci.org/cnodejs/nodeclub
 [coverage-image]: https://img.shields.io/coveralls/cnodejs/nodeclub.svg?style=flat-square
 [coverage-url]: https://coveralls.io/r/cnodejs/nodeclub?branch=master
 [david-image]: https://img.shields.io/david/cnodejs/nodeclub.svg?style=flat-square
 [david-url]: https://david-dm.org/cnodejs/nodeclub
-[node-image]: https://img.shields.io/badge/node.js-%3E=_0.10-green.svg?style=flat-square
+[node-image]: https://img.shields.io/badge/node.js-%3E=_4.2-green.svg?style=flat-square
 [node-url]: http://nodejs.org/download/
 
 ## 介绍
