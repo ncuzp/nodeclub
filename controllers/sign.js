@@ -84,6 +84,7 @@ exports.signup = function (req, res, next) {
  * @param  {HttpResponse} res
  */
 exports.showLogin = function (req, res) {
+  // 记录跳转到当前页面的地址
   req.session._loginReferer = req.headers.referer;
   res.render('sign/signin');
 };
@@ -107,50 +108,64 @@ var notJump = [
  * @param {Function} next
  */
 exports.login = function (req, res, next) {
+  // 获取用户输入的用户名密码并使用validator组件进行验证
   var loginname = validator.trim(req.body.name).toLowerCase();
   var pass      = validator.trim(req.body.pass);
   var ep        = new eventproxy();
 
   ep.fail(next);
 
+  // 未填写用户名或者密码
   if (!loginname || !pass) {
     res.status(422);
     return res.render('sign/signin', { error: '信息不完整。' });
   }
 
   var getUser;
+  // 判断当前是否是用邮箱进行登录
   if (loginname.indexOf('@') !== -1) {
     getUser = User.getUserByMail;
   } else {
     getUser = User.getUserByLoginName;
   }
 
+  // 监听事件代理登录错误事件
   ep.on('login_error', function (login_error) {
     res.status(403);
     res.render('sign/signin', { error: '用户名或密码错误' });
   });
 
   getUser(loginname, function (err, user) {
+    // 无法获取用户信息,进行下一个组件处理
     if (err) {
       return next(err);
     }
+
+    // 未获取有效用户信息,触发登录错误事件
     if (!user) {
       return ep.emit('login_error');
     }
+
+
     var passhash = user.pass;
+    // 密码进行hash值比较
     tools.bcompare(pass, passhash, ep.done(function (bool) {
+      // 密码不匹配登录错误
       if (!bool) {
         return ep.emit('login_error');
       }
+
+      // 如果当前用户为未激活用户则发送激活邮件提醒用户进行账号激活
       if (!user.active) {
         // 重新发送激活邮件
         mail.sendActiveMail(user.email, utility.md5(user.email + passhash + config.session_secret), user.loginname);
         res.status(403);
         return res.render('sign/signin', { error: '此帐号还没有被激活，激活链接已发送到 ' + user.email + ' 邮箱，请查收。' });
       }
-      // store session cookie
+
+      // 在session中存储用户的登录信息
       authMiddleWare.gen_session(user, res);
-      //check at some page just jump to home page
+      // 从notJump中声明的地址跳转过来到页面默认不会跳,直接跳转到首页
       var refer = req.session._loginReferer || '/';
       for (var i = 0, len = notJump.length; i !== len; ++i) {
         if (refer.indexOf(notJump[i]) >= 0) {
@@ -158,6 +173,7 @@ exports.login = function (req, res, next) {
           break;
         }
       }
+
       res.redirect(refer);
     }));
   });
@@ -165,6 +181,7 @@ exports.login = function (req, res, next) {
 
 // sign out
 exports.signout = function (req, res, next) {
+  // 用户推出,清除session以及cookie值并重定向到首页
   req.session.destroy();
   res.clearCookie(config.auth_cookie_name, { path: '/' });
   res.redirect('/');
